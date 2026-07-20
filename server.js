@@ -1,17 +1,16 @@
-
 const express = require('express');
 const path = require('path');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const multer = require('multer');
-const axios = require('axios');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ========== MIDDLEWARE ==========
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -34,13 +33,10 @@ function writeDB(data) {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'fahadniazi09@gmail.com',
-    pass: 'yior bzzm lwhj oecr'
+    user: process.env.EMAIL_USER || 'fahadniazi09@gmail.com',
+    pass: process.env.EMAIL_PASS || 'yior bzzm lwhj oecr'
   }
 });
-
-// ========== UPLOAD ==========
-const upload = multer({ dest: 'uploads/' });
 
 // ========== AUTH ROUTES ==========
 app.post('/api/signup', async (req, res) => {
@@ -266,11 +262,12 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// ========== MAIN ROUTE ==========
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ========== SERVER START ==========
-app.listen(process.env.PORT || 3000, '0.0.0.0', () => {  console.log(`✅ Black Web Studio running on port ${process.env.PORT || 3000}`);});
-  console.log(`✅ Black Web Studio running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Black Web Studio running on port ${PORT}`);
 });
