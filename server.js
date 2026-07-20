@@ -138,7 +138,7 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
-// ========== COHERE API AGENT ==========
+// ========== COHERE API AGENT (FREE MODEL) ==========
 app.post('/api/agent', async (req, res) => {
   const { prompt, type } = req.body;
   console.log('Agent called with prompt:', prompt);
@@ -150,17 +150,16 @@ app.post('/api/agent', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
-  // ⚠️ Cohere API Key
   const COHERE_API_KEY = 'VEOG9lPFqxFcDyH5b4oOHt20iUiisyCM';
 
   try {
     const codePrompt = `Generate complete, production-ready HTML/CSS/JS code for: "${prompt}". Include: full HTML, professional CSS, interactive JS, responsive design, dark theme, Font Awesome icons. Only output raw HTML code.`;
 
-    console.log('Calling Cohere API...');
+    console.log('Calling Cohere API with free model...');
     const codeResponse = await axios.post(
       'https://api.cohere.com/v1/chat',
       {
-        model: 'command-r-plus',
+        model: 'command-r', // Free model
         messages: [
           { role: 'system', content: 'You are a code generator. Generate complete HTML/CSS/JS code only.' },
           { role: 'user', content: codePrompt }
@@ -177,14 +176,14 @@ app.post('/api/agent', async (req, res) => {
       }
     );
     
-    let code = codeResponse.data.choices?.[0]?.message?.content || 
-                codeResponse.data.text || 
+    let code = codeResponse.data.text || 
+                codeResponse.data.choices?.[0]?.message?.content || 
                 '// AI response not available';
     code = code.replace(/```html/g, '').replace(/```/g, '').trim();
     console.log('Code generated, length:', code.length);
 
     const agentResponse = {
-      research: { summary: 'Project researched via Cohere' },
+      research: { summary: 'Project researched via Cohere (Free Model)' },
       requirements: 'Full website with HTML/CSS/JS',
       code: code,
       preview: code
