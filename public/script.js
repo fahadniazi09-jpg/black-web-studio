@@ -1,3 +1,6 @@
+// ========== API BASE URL ==========
+const API_BASE = window.location.origin; // https://black-web-studio.pxxl.run
+
 // ========== STATE ==========
 let currentProjectId = null;
 let isPremium = false;
@@ -16,37 +19,36 @@ async function sendMessage() {
   
   try {
     const type = document.getElementById('projectType').value;
-    const res = await fetch('/api/agent', {
+    const res = await fetch(`${API_BASE}/api/agent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: msg, type })
     });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    
     const data = await res.json();
     
     if (data.code) {
-      // Show research summary
       if (data.research && data.research.summary) {
         addMessage('agent', '📊 Research Complete:\n' + data.research.summary);
       }
-      
-      // Show requirements
       if (data.requirements) {
         addMessage('agent', '📋 Requirements:\n' + data.requirements);
       }
-      
-      // Show code
       document.getElementById('codeEditor').value = data.code;
       addMessage('agent', '✅ Code generated! Check the editor.');
       setStatus('✅ Ready');
-      
-      // Auto-preview
       openPreview();
     } else {
       addMessage('agent', '❌ Error generating project. Please try again.');
       setStatus('❌ Error');
     }
   } catch (e) {
-    addMessage('agent', '❌ Network error. Please check your connection.');
+    console.error('Fetch error:', e);
+    addMessage('agent', '❌ Network error. Please check your connection and try again.');
     setStatus('❌ Error');
   }
 }
@@ -71,12 +73,12 @@ async function publishProject() {
   if (!currentProjectId) { alert('Create a project first!'); return; }
   setStatus('⏳ Publishing...');
   try {
-    await fetch(`/api/projects/${currentProjectId}`, {
+    await fetch(`${API_BASE}/api/projects/${currentProjectId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: document.getElementById('codeEditor').value })
     });
-    const res = await fetch(`/api/publish/${currentProjectId}`, { method: 'POST' });
+    const res = await fetch(`${API_BASE}/api/publish/${currentProjectId}`, { method: 'POST' });
     const data = await res.json();
     addMessage('agent', `✅ Published! URL: ${data.url}`);
     setStatus('✅ Published!');
@@ -141,7 +143,7 @@ async function handleSignup() {
   const error = document.getElementById('signupError');
   if (!email || !password) { error.textContent = 'Fill all fields'; return; }
   try {
-    const res = await fetch('/api/signup', {
+    const res = await fetch(`${API_BASE}/api/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -159,7 +161,7 @@ async function handleVerify() {
   const code = document.getElementById('verifyCode').value;
   const error = document.getElementById('verifyError');
   try {
-    const res = await fetch('/api/verify', {
+    const res = await fetch(`${API_BASE}/api/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code })
@@ -178,7 +180,7 @@ async function handleLogin() {
   const password = document.getElementById('loginPassword').value;
   const error = document.getElementById('authError');
   try {
-    const res = await fetch('/api/login', {
+    const res = await fetch(`${API_BASE}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -197,7 +199,7 @@ async function handleForgot() {
   const email = document.getElementById('forgotEmail').value;
   const error = document.getElementById('forgotError');
   try {
-    const res = await fetch('/api/forgot-password', {
+    const res = await fetch(`${API_BASE}/api/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
@@ -212,7 +214,7 @@ async function handleResend() {
   const email = document.getElementById('resendEmail').value;
   const error = document.getElementById('resendError');
   try {
-    const res = await fetch('/api/resend-verification', {
+    const res = await fetch(`${API_BASE}/api/resend-verification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
@@ -224,7 +226,7 @@ async function handleResend() {
 }
 
 async function handleLogout() {
-  await fetch('/api/logout', { method: 'POST' });
+  await fetch(`${API_BASE}/api/logout`, { method: 'POST' });
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('authModal').classList.add('active');
   document.getElementById('logoutBtn').style.display = 'none';
@@ -245,7 +247,7 @@ function showPage(pageId) {
 // ========== PROJECTS ==========
 async function loadProjects() {
   try {
-    const res = await fetch('/api/projects');
+    const res = await fetch(`${API_BASE}/api/projects`);
     const data = await res.json();
     const list = document.getElementById('projectsList');
     if (data.projects && data.projects.length > 0) {
@@ -280,7 +282,7 @@ function processTopup(amount) {
 }
 
 // ========== SESSION CHECK ==========
-fetch('/api/session').then(res => res.json()).then(data => {
+fetch(`${API_BASE}/api/session`).then(res => res.json()).then(data => {
   if (data.loggedIn) {
     document.getElementById('authModal').classList.remove('active');
     document.getElementById('mainApp').style.display = 'flex';
