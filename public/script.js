@@ -1,6 +1,5 @@
 // ========== API BASE URL ==========
-// Pxxl par deploy hai, seedha origin use karein
-const API_BASE = window.location.origin; // https://black-web-studio.pxxl.run
+const API_BASE = '';
 
 // ========== STATE ==========
 let currentProjectId = null;
