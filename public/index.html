@@ -5,18 +5,109 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Black Web Studio 🕸️</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 20px; }
-    h1 { font-size: 3rem; background: linear-gradient(45deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    p { font-size: 1.2rem; opacity: 0.8; }
-    .btn { padding: 12px 30px; border: none; border-radius: 50px; background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; font-weight: 700; cursor: pointer; }
-    .btn:hover { transform: scale(1.05); }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🕸️ Black Web Studio</h1>
-  <p>Your AI-powered development platform is live!</p>
-  <button class="btn" onclick="alert('Welcome to Black Web Studio!')">Get Started</button>
+  <!-- Header -->
+  <header>
+    <nav>
+      <div class="logo"><i class="fas fa-spider"></i> Black Web Studio</div>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><button onclick="showAuth()" id="authBtn"><i class="fas fa-user"></i> Login</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="auth-modal">
+    <div class="auth-box">
+      <span class="close-btn" onclick="closeAuth()">&times;</span>
+      <h2><i class="fas fa-spider"></i> Black Web Studio</h2>
+      <div id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" value="fahadniazi09@gmail.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="Fahad5848?.">
+        <button onclick="handleLogin()">Login</button>
+        <p class="switch" onclick="showSignup()">Don't have an account? Sign up</p>
+        <p class="switch" onclick="showResend()">Resend verification?</p>
+        <p class="switch" onclick="showForgot()">Forgot password?</p>
+        <div id="authError" class="error"></div>
+      </div>
+      <div id="signupForm" style="display:none;">
+        <input type="email" id="signupEmail" placeholder="Email">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button onclick="handleSignup()">Sign Up</button>
+        <p class="switch" onclick="showLogin()">Already have an account? Login</p>
+        <div id="signupError" class="error"></div>
+      </div>
+      <div id="verifyForm" style="display:none;">
+        <p>Enter code sent to your email</p>
+        <input type="text" id="verifyCode" placeholder="6-digit code">
+        <button onclick="handleVerify()">Verify</button>
+        <div id="verifyError" class="error"></div>
+      </div>
+      <div id="forgotForm" style="display:none;">
+        <p>Enter your email to reset password</p>
+        <input type="email" id="forgotEmail" placeholder="Email">
+        <button onclick="handleForgot()">Send</button>
+        <p class="switch" onclick="showLogin()">Back</p>
+        <div id="forgotError" class="error"></div>
+      </div>
+      <div id="resendForm" style="display:none;">
+        <p>Enter your email to resend code</p>
+        <input type="email" id="resendEmail" placeholder="Email">
+        <button onclick="handleResend()">Send</button>
+        <p class="switch" onclick="showLogin()">Back</p>
+        <div id="resendError" class="error"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main>
+    <!-- Home -->
+    <section id="home" class="hero">
+      <h1>🕸️ Black Web Studio</h1>
+      <p>Build modern, responsive, and high-performance web applications.</p>
+      <button onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})" class="btn">View Our Work</button>
+    </section>
+
+    <!-- About -->
+    <section id="about">
+      <h2>About Us</h2>
+      <p>Black Web Studio is a passionate team dedicated to crafting clean, responsive, and user-friendly websites. We bring your ideas to life with modern design and cutting-edge technology.</p>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects">
+      <h2>Projects</h2>
+      <div class="project-grid" id="projectGrid">
+        <div class="project-card"><h3>AI Documentary</h3><p>An interactive documentary about AI</p></div>
+        <div class="project-card"><h3>Portfolio Pro</h3><p>Modern portfolio for creatives</p></div>
+        <div class="project-card"><h3>Eco Shop</h3><p>Sustainable e-commerce platform</p></div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact">
+      <h2>Contact</h2>
+      <form id="contactForm">
+        <input type="text" id="contactName" placeholder="Your Name" required>
+        <input type="email" id="contactEmail" placeholder="Your Email" required>
+        <textarea id="contactMessage" placeholder="Your Message" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Black Web Studio. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
