@@ -1,4 +1,5 @@
 // ========== API BASE URL ==========
+// Pxxl par deploy hai, seedha origin use karein
 const API_BASE = window.location.origin; // https://black-web-studio.pxxl.run
 
 // ========== STATE ==========
@@ -15,7 +16,7 @@ async function sendMessage() {
   
   addMessage('user', msg);
   input.value = '';
-  setStatus('🔍 Researching...');
+  setStatus('🔍 Generating...');
   
   try {
     const type = document.getElementById('projectType').value;
@@ -25,19 +26,16 @@ async function sendMessage() {
       body: JSON.stringify({ prompt: msg, type })
     });
     
+    console.log('Response status:', res.status);
+    
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
     
     const data = await res.json();
+    console.log('Data received:', data);
     
     if (data.code) {
-      if (data.research && data.research.summary) {
-        addMessage('agent', '📊 Research Complete:\n' + data.research.summary);
-      }
-      if (data.requirements) {
-        addMessage('agent', '📋 Requirements:\n' + data.requirements);
-      }
       document.getElementById('codeEditor').value = data.code;
       addMessage('agent', '✅ Code generated! Check the editor.');
       setStatus('✅ Ready');
