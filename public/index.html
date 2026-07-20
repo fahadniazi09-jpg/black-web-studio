@@ -5,109 +5,585 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Black Web Studio 🕸️</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Header */
+    header { background: #0a0a0a; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .logo { font-size: 1.5rem; font-weight: 700; background: linear-gradient(45deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .logo i { color: #4cc9f0; }
+    .header-right { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .header-right button { background: rgba(255,255,255,0.05); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.08); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
+    .header-right button:hover { background: rgba(255,255,255,0.1); border-color: #4cc9f0; }
+    .user-badge { padding: 4px 12px; border-radius: 20px; background: rgba(76,201,240,0.12); color: #4cc9f0; font-size: 0.75rem; }
+
+    /* Main Layout */
+    .main-layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; padding: 16px; flex: 1; }
+    @media (max-width: 768px) { .main-layout { grid-template-columns: 1fr; } }
+
+    .panel { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05); }
+
+    .center-panel { display: flex; flex-direction: column; gap: 10px; }
+    .toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
+    .toolbar button { padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
+    .btn-primary { background: linear-gradient(45deg, #4cc9f0, #f72585); color: white; }
+    .btn-success { background: #1dd1a1; color: white; }
+    .btn-dark { background: rgba(255,255,255,0.05); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.08); }
+    .center-panel textarea { width: 100%; height: 200px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; color: #e0e0e0; padding: 12px; font-family: monospace; font-size: 0.85rem; resize: none; }
+    .center-panel iframe { width: 100%; height: 250px; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; background: white; margin-top: 8px; }
+
+    /* Chat */
+    .right-panel { display: flex; flex-direction: column; gap: 6px; }
+    .chat-messages { flex: 1; overflow-y: auto; max-height: 300px; display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+    .chat-message { padding: 6px 10px; border-radius: 8px; max-width: 95%; font-size: 0.85rem; }
+    .chat-message.user { align-self: flex-end; background: #4cc9f0; color: #0a0a0a; }
+    .chat-message.agent { align-self: flex-start; background: rgba(255,255,255,0.06); }
+    .chat-message.system { align-self: center; background: rgba(255,255,255,0.03); font-size: 0.75rem; color: #666; }
+    .chat-input-row { display: flex; gap: 6px; }
+    .chat-input-row input { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.3); color: #e0e0e0; }
+    .chat-input-row button { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; background: linear-gradient(45deg, #4cc9f0, #f72585); color: white; }
+
+    .icon-bar { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+    .icon-bar button { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #e0e0e0; padding: 4px 10px; border-radius: 16px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; gap: 4px; transition: 0.3s; }
+    .icon-bar button:hover { background: rgba(255,255,255,0.08); border-color: #4cc9f0; }
+    .status-bar { font-size: 0.7rem; color: #666; text-align: center; padding: 4px; }
+
+    .premium-lock { text-align: center; padding: 12px; margin-top: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.06); color: #666; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .premium-lock i { color: #f72585; }
+    .premium-lock .upgrade-btn { background: linear-gradient(45deg, #f72585, #4cc9f0); color: #0a0a0a; padding: 4px 16px; border-radius: 20px; font-weight: 700; cursor: pointer; border: none; font-size: 0.75rem; }
+
+    .project-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px 16px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .project-card .info .name { font-weight: 600; color: #e0e0e0; }
+    .project-card .info .date { font-size: 0.7rem; color: #666; }
+    .project-card .open-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); color: #e0e0e0; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+
+    .page { display: none; max-width: 1200px; margin: 0 auto; width: 100%; padding: 16px; }
+    .page.active { display: block; }
+    .back-arrow { display: inline-flex; align-items: center; gap: 6px; color: #4cc9f0; cursor: pointer; margin-bottom: 12px; }
+    .back-arrow:hover { color: #f72585; }
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .page-header h2 { font-size: 1.3rem; font-weight: 600; }
+    .page-header h2 i { color: #4cc9f0; margin-right: 6px; }
+
+    .settings-list { display: flex; flex-direction: column; gap: 8px; }
+    .settings-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.04); flex-wrap: wrap; gap: 6px; }
+    .settings-item .label { font-weight: 500; }
+    .settings-item .value { color: #888; font-size: 0.85rem; }
+    .settings-item input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); color: #e0e0e0; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; }
+    .settings-item .save-btn { background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; padding: 4px 12px; border-radius: 4px; cursor: pointer; border: none; font-weight: 600; font-size: 0.75rem; }
+    .settings-item .edit-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); color: #e0e0e0; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+    .plan-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.06); transition: 0.3s; }
+    .plan-card:hover { transform: translateY(-4px); border-color: #4cc9f0; box-shadow: 0 10px 30px rgba(76,201,240,0.05); }
+    .plan-card.popular { border-color: #f72585; }
+    .plan-card.popular::before { content: 'Most Popular'; background: linear-gradient(45deg, #f72585, #4cc9f0); padding: 2px 12px; border-radius: 0 12px 0 12px; font-size: 0.65rem; font-weight: 700; color: #0a0a0a; display: inline-block; margin-bottom: 8px; }
+    .plan-card .icon { font-size: 2rem; margin-bottom: 6px; }
+    .plan-card h3 { font-size: 1.1rem; color: #fff; }
+    .plan-card .price { font-size: 1.8rem; font-weight: 800; background: linear-gradient(45deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 8px 0; }
+    .plan-card .features { list-style: none; margin: 10px 0; color: #888; font-size: 0.8rem; line-height: 1.8; }
+    .plan-card .features li i { color: #1dd1a1; margin-right: 4px; }
+    .plan-card .btn { padding: 6px 24px; border: none; border-radius: 20px; background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+    .plan-card .btn:hover { transform: scale(1.05); }
+
+    .credit-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .credit-box .amount { font-size: 1.8rem; font-weight: 700; color: #4cc9f0; }
+    .credit-box .add-btn { background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; padding: 6px 18px; border-radius: 20px; font-weight: 700; cursor: pointer; border: none; margin: 0 4px; }
+    .credit-box .add-btn:hover { transform: scale(1.02); }
+
+    .integration-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .integration-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; text-align: center; transition: 0.3s; cursor: pointer; }
+    .integration-item:hover { border-color: #4cc9f0; background: rgba(76,201,240,0.03); }
+    .integration-item i { font-size: 1.8rem; color: #4cc9f0; margin-bottom: 4px; }
+    .integration-item h4 { font-size: 0.85rem; color: #e0e0e0; }
+    .integration-item p { font-size: 0.7rem; color: #666; }
+    .integration-item .connect-btn { margin-top: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); color: #e0e0e0; padding: 2px 12px; border-radius: 12px; cursor: pointer; font-size: 0.65rem; }
+
+    .security-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .security-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 14px; }
+    .security-item h4 { color: #4cc9f0; font-size: 0.9rem; margin-bottom: 4px; }
+    .security-item p { color: #888; font-size: 0.8rem; }
+
+    .promotion-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .promotion-card .status.active { color: #1dd1a1; }
+    .promotion-card .status.inactive { color: #f72585; }
+
+    .auth-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 999; }
+    .auth-modal.active { display: flex; }
+    .auth-box { background: #1a1a1a; padding: 30px; border-radius: 12px; max-width: 380px; width: 90%; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+    .auth-box h2 { text-align: center; margin-bottom: 16px; color: #fff; }
+    .auth-box h2 i { color: #4cc9f0; }
+    .auth-box input { width: 100%; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: #0a0a0a; color: #e0e0e0; }
+    .auth-box button { width: 100%; padding: 10px; margin: 6px 0; border: none; border-radius: 6px; background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; font-weight: 700; cursor: pointer; }
+    .auth-box .error { color: #f72585; text-align: center; font-size: 0.8rem; margin: 4px 0; }
+    .auth-box .switch { text-align: center; cursor: pointer; color: #4cc9f0; font-size: 0.8rem; margin-top: 6px; }
+    .close-btn { position: absolute; top: 12px; right: 16px; font-size: 1.3rem; cursor: pointer; color: #888; }
+
+    footer { text-align: center; padding: 16px; border-top: 1px solid rgba(255,255,255,0.05); opacity: 0.6; font-size: 0.85rem; }
+
+    @media (max-width: 480px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .main-layout { grid-template-columns: 1fr; padding: 8px; }
+      .panel { padding: 10px; }
+      .center-panel textarea { height: 120px; }
+      .center-panel iframe { height: 180px; }
+    }
+  </style>
 </head>
 <body>
-  <!-- Header -->
+
+<!-- Auth Modal -->
+<div id="authModal" class="auth-modal active">
+  <div class="auth-box">
+    <span class="close-btn" onclick="closeAuth()">&times;</span>
+    <h2><i class="fas fa-spider"></i> Black Web Studio</h2>
+    <div id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" value="fahadniazi09@gmail.com">
+      <input type="password" id="loginPassword" placeholder="Password" value="Fahad5848?.">
+      <button onclick="handleLogin()">Login</button>
+      <p class="switch" onclick="showSignup()">Don't have an account? Sign up</p>
+      <p class="switch" style="font-size:0.75rem;color:#666;" onclick="showResend()">Resend verification?</p>
+      <p class="switch" style="font-size:0.75rem;color:#666;" onclick="showForgot()">Forgot password?</p>
+      <div id="authError" class="error"></div>
+    </div>
+    <div id="signupForm" style="display:none;">
+      <input type="email" id="signupEmail" placeholder="Email">
+      <input type="password" id="signupPassword" placeholder="Password">
+      <button onclick="handleSignup()">Sign Up</button>
+      <p class="switch" onclick="showLogin()">Already have an account? Login</p>
+      <div id="signupError" class="error"></div>
+    </div>
+    <div id="verifyForm" style="display:none;">
+      <p>Enter code sent to your email</p>
+      <input type="text" id="verifyCode" placeholder="6-digit code">
+      <button onclick="handleVerify()">Verify</button>
+      <div id="verifyError" class="error"></div>
+    </div>
+    <div id="forgotForm" style="display:none;">
+      <p>Enter your email to reset password</p>
+      <input type="email" id="forgotEmail" placeholder="Email">
+      <button onclick="handleForgot()">Send</button>
+      <p class="switch" onclick="showLogin()">Back</p>
+      <div id="forgotError" class="error"></div>
+    </div>
+    <div id="resendForm" style="display:none;">
+      <p>Enter your email to resend code</p>
+      <input type="email" id="resendEmail" placeholder="Email">
+      <button onclick="handleResend()">Send</button>
+      <p class="switch" onclick="showLogin()">Back</p>
+      <div id="resendError" class="error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" style="display:none;">
   <header>
-    <nav>
-      <div class="logo"><i class="fas fa-spider"></i> Black Web Studio</div>
-      <ul class="nav-links">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#contact">Contact</a></li>
-        <li><button onclick="showAuth()" id="authBtn"><i class="fas fa-user"></i> Login</button></li>
-      </ul>
-    </nav>
+    <div class="logo"><i class="fas fa-spider"></i> Black Web Studio</div>
+    <div class="header-right">
+      <span class="user-badge" id="userBadge">Guest</span>
+      <button onclick="showPage('settings')"><i class="fas fa-cog"></i></button>
+      <button onclick="showPage('plans')"><i class="fas fa-crown"></i></button>
+      <button onclick="handleLogout()" id="logoutBtn" style="display:none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </header>
 
-  <!-- Auth Modal -->
-  <div id="authModal" class="auth-modal">
-    <div class="auth-box">
-      <span class="close-btn" onclick="closeAuth()">&times;</span>
-      <h2><i class="fas fa-spider"></i> Black Web Studio</h2>
-      <div id="loginForm">
-        <input type="email" id="loginEmail" placeholder="Email" value="fahadniazi09@gmail.com">
-        <input type="password" id="loginPassword" placeholder="Password" value="Fahad5848?.">
-        <button onclick="handleLogin()">Login</button>
-        <p class="switch" onclick="showSignup()">Don't have an account? Sign up</p>
-        <p class="switch" onclick="showResend()">Resend verification?</p>
-        <p class="switch" onclick="showForgot()">Forgot password?</p>
-        <div id="authError" class="error"></div>
+  <div class="main-layout">
+    <!-- Center Panel -->
+    <div class="panel center-panel">
+      <div class="toolbar">
+        <button class="btn-primary" onclick="generateCode()"><i class="fas fa-wand-magic-sparkles"></i> Generate</button>
+        <button class="btn-success" onclick="openPreview()"><i class="fas fa-eye"></i> Preview</button>
+        <button class="btn-dark" onclick="publishProject()"><i class="fas fa-globe"></i> Publish</button>
+        <select id="projectType" style="background:rgba(255,255,255,0.05);color:#e0e0e0;border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:4px 8px;font-size:0.8rem;">
+          <option value="website">Website</option>
+          <option value="game">Game</option>
+          <option value="app">App</option>
+        </select>
       </div>
-      <div id="signupForm" style="display:none;">
-        <input type="email" id="signupEmail" placeholder="Email">
-        <input type="password" id="signupPassword" placeholder="Password">
-        <button onclick="handleSignup()">Sign Up</button>
-        <p class="switch" onclick="showLogin()">Already have an account? Login</p>
-        <div id="signupError" class="error"></div>
+      <textarea id="codeEditor" spellcheck="false">// Your code will appear here</textarea>
+      <iframe id="previewFrame" srcdoc="<h1 style='color:#0a0a0a;padding:20px;text-align:center;'>🕸️ Black Web Studio</h1><p style='color:#0a0a0a;padding:0 20px;text-align:center;'>Your code will appear here</p>"></iframe>
+      <div class="premium-lock">
+        <i class="fas fa-lock"></i> <span id="lockMessage">Premium required to generate.</span>
+        <button class="upgrade-btn" onclick="showPage('plans')">Upgrade Now</button>
       </div>
-      <div id="verifyForm" style="display:none;">
-        <p>Enter code sent to your email</p>
-        <input type="text" id="verifyCode" placeholder="6-digit code">
-        <button onclick="handleVerify()">Verify</button>
-        <div id="verifyError" class="error"></div>
+      <div id="generatedProjects"></div>
+    </div>
+
+    <!-- Right Panel (Agent) -->
+    <div class="panel right-panel">
+      <h3 style="color:#4cc9f0;font-size:0.9rem;"><i class="fas fa-robot"></i> Agent</h3>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-message agent">🕸️ Hello! What would you like to build?</div>
       </div>
-      <div id="forgotForm" style="display:none;">
-        <p>Enter your email to reset password</p>
-        <input type="email" id="forgotEmail" placeholder="Email">
-        <button onclick="handleForgot()">Send</button>
-        <p class="switch" onclick="showLogin()">Back</p>
-        <div id="forgotError" class="error"></div>
+      <div class="chat-input-row">
+        <input id="chatInput" placeholder="Describe your idea..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
       </div>
-      <div id="resendForm" style="display:none;">
-        <p>Enter your email to resend code</p>
-        <input type="email" id="resendEmail" placeholder="Email">
-        <button onclick="handleResend()">Send</button>
-        <p class="switch" onclick="showLogin()">Back</p>
-        <div id="resendError" class="error"></div>
+      <div class="icon-bar">
+        <button onclick="openPreview()"><i class="fas fa-eye"></i> Preview</button>
+        <button onclick="publishProject()"><i class="fas fa-globe"></i> Publish</button>
+        <button onclick="showPage('plans')"><i class="fas fa-crown"></i> Plans</button>
+        <button onclick="showPage('settings')"><i class="fas fa-cog"></i> Settings</button>
+        <button onclick="clearChat()"><i class="fas fa-trash"></i></button>
+        <button onclick="document.getElementById('fileInput').click()"><i class="fas fa-paperclip"></i> File</button>
+        <input type="file" id="fileInput" style="display:none" onchange="handleFileUpload(event)">
       </div>
+      <div class="status-bar" id="statusBar">✅ Ready</div>
     </div>
   </div>
 
-  <!-- Main -->
-  <main>
-    <!-- Home -->
-    <section id="home" class="hero">
-      <h1>🕸️ Black Web Studio</h1>
-      <p>Build modern, responsive, and high-performance web applications.</p>
-      <button onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})" class="btn">View Our Work</button>
-    </section>
+  <!-- Projects Page -->
+  <div id="page-projects" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-folder"></i> Projects</h2></div>
+    <div id="projectsList"><p style="color:#888;">No projects yet.</p></div>
+  </div>
 
-    <!-- About -->
-    <section id="about">
-      <h2>About Us</h2>
-      <p>Black Web Studio is a passionate team dedicated to crafting clean, responsive, and user-friendly websites. We bring your ideas to life with modern design and cutting-edge technology.</p>
-    </section>
+  <!-- Settings Page -->
+  <div id="page-settings" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-cog"></i> Settings</h2></div>
+    <div class="settings-list">
+      <div class="settings-item"><span class="label">👤 Username</span><input type="text" id="settingsUsername" value="fahadniazi09"><button class="save-btn" onclick="saveSetting('username')">Save</button></div>
+      <div class="settings-item"><span class="label">📧 Email</span><input type="email" id="settingsEmail" value="fahadniazi09@gmail.com"><button class="save-btn" onclick="saveSetting('email')">Save</button></div>
+      <div class="settings-item"><span class="label">🌐 Language</span><select id="settingsLanguage"><option value="en">English</option><option value="ur">Urdu</option><option value="hi">Hindi</option><option value="ar">Arabic</option><option value="fr">Français</option><option value="es">Español</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="pt">Português</option><option value="ru">Русский</option><option value="zh">中文</option><option value="ja">日本語</option><option value="ko">한국어</option></select><button class="save-btn" onclick="saveSetting('language')">Save</button></div>
+      <div class="settings-item"><span class="label">🎨 Theme</span><select id="settingsTheme"><option value="dark">Dark</option><option value="light">Light</option></select><button class="save-btn" onclick="saveSetting('theme')">Save</button></div>
+      <div class="settings-item"><span class="label">💳 Subscription</span><span class="value" style="color:#4cc9f0;" id="subscriptionStatus">Free</span><button class="edit-btn" onclick="showPage('plans')">Upgrade</button></div>
+      <div class="settings-item"><span class="label">💰 Credit</span><span class="value" style="color:#f72585;" id="settingsCredit">$0</span><button class="edit-btn" onclick="showPage('credit')">Add</button></div>
+    </div>
+  </div>
 
-    <!-- Projects -->
-    <section id="projects">
-      <h2>Projects</h2>
-      <div class="project-grid" id="projectGrid">
-        <div class="project-card"><h3>AI Documentary</h3><p>An interactive documentary about AI</p></div>
-        <div class="project-card"><h3>Portfolio Pro</h3><p>Modern portfolio for creatives</p></div>
-        <div class="project-card"><h3>Eco Shop</h3><p>Sustainable e-commerce platform</p></div>
-      </div>
-    </section>
+  <!-- Plans Page -->
+  <div id="page-plans" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-crown"></i> Choose Your Plan</h2></div>
+    <div class="plans-grid">
+      <div class="plan-card"><div class="icon">🌱</div><h3>1 Day</h3><div class="price">$2</div><ul class="features"><li><i class="fas fa-check"></i> Full access</li><li><i class="fas fa-check"></i> 1 project</li></ul><button class="btn" onclick="alert('Buy 1 Day Plan')">Buy Now</button></div>
+      <div class="plan-card popular"><div class="icon">🚀</div><h3>7 Days</h3><div class="price">$5</div><ul class="features"><li><i class="fas fa-check"></i> Full access</li><li><i class="fas fa-check"></i> 5 projects</li><li><i class="fas fa-check"></i> Priority support</li></ul><button class="btn" onclick="alert('Buy 7 Day Plan')">Buy Now</button></div>
+      <div class="plan-card"><div class="icon">💎</div><h3>1 Month</h3><div class="price">$10</div><ul class="features"><li><i class="fas fa-check"></i> Unlimited projects</li><li><i class="fas fa-check"></i> Premium templates</li></ul><button class="btn" onclick="alert('Buy 1 Month Plan')">Buy Now</button></div>
+      <div class="plan-card"><div class="icon">👑</div><h3>Lifetime</h3><div class="price">$20</div><ul class="features"><li><i class="fas fa-check"></i> Forever access</li><li><i class="fas fa-check"></i> Future updates</li></ul><button class="btn" onclick="alert('Buy Lifetime Plan')">Buy Now</button></div>
+    </div>
+  </div>
 
-    <!-- Contact -->
-    <section id="contact">
-      <h2>Contact</h2>
-      <form id="contactForm">
-        <input type="text" id="contactName" placeholder="Your Name" required>
-        <input type="email" id="contactEmail" placeholder="Your Email" required>
-        <textarea id="contactMessage" placeholder="Your Message" required></textarea>
-        <button type="submit">Send Message</button>
-      </form>
-    </section>
-  </main>
+  <!-- Credit Page -->
+  <div id="page-credit" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-coins"></i> Credit Balance</h2></div>
+    <div class="credit-box">
+      <div><span style="color:#888;">Your Balance</span><div class="amount" id="creditBalanceDisplay">$0</div></div>
+      <div><button class="add-btn" onclick="processTopup(1)">+$1</button><button class="add-btn" onclick="processTopup(5)" style="margin-left:4px;">+$5</button><button class="add-btn" onclick="processTopup(10)" style="margin-left:4px;">+$10</button></div>
+    </div>
+  </div>
 
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 Black Web Studio. All rights reserved.</p>
-  </footer>
+  <!-- Integrations Page -->
+  <div id="page-integrations" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-plug"></i> Integrations</h2></div>
+    <div class="integration-grid">
+      <div class="integration-item"><i class="fab fa-github"></i><h4>GitHub</h4><p>Not connected</p><button class="connect-btn">Connect</button></div>
+      <div class="integration-item"><i class="fab fa-google"></i><h4>Google</h4><p>Not connected</p><button class="connect-btn">Connect</button></div>
+      <div class="integration-item"><i class="fab fa-slack"></i><h4>Slack</h4><p>Not connected</p><button class="connect-btn">Connect</button></div>
+      <div class="integration-item"><i class="fab fa-discord"></i><h4>Discord</h4><p>Not connected</p><button class="connect-btn">Connect</button></div>
+      <div class="integration-item"><i class="fab fa-stripe"></i><h4>Stripe</h4><p>Connected</p><button class="connect-btn">Manage</button></div>
+    </div>
+  </div>
 
-  <script src="script.js"></script>
+  <!-- Security Page -->
+  <div id="page-security" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-shield-alt"></i> Security</h2></div>
+    <div class="security-grid">
+      <div class="security-item"><h4>🔑 API Keys</h4><p>2 active keys</p></div>
+      <div class="security-item"><h4>🛡️ 2FA</h4><p>Enabled</p></div>
+      <div class="security-item"><h4>🔒 Encryption</h4><p>AES-256</p></div>
+      <div class="security-item"><h4>📋 Audit Log</h4><p>Last access: 2 hours ago</p></div>
+    </div>
+  </div>
+
+  <!-- Promotions Page -->
+  <div id="page-promotions" class="page">
+    <div class="back-arrow" onclick="showMain()"><i class="fas fa-arrow-left"></i> Back</div>
+    <div class="page-header"><h2><i class="fas fa-bullhorn"></i> Promotions</h2></div>
+    <div class="promotion-card"><h3>🎉 Summer Sale</h3><p>50% off. Code: SUMMER50</p><span class="status active">● Active</span></div>
+    <div class="promotion-card"><h3>🚀 Referral</h3><p>Invite friend → $5 credit</p><span class="status active">● Active</span></div>
+    <div class="promotion-card"><h3>📢 Early Bird</h3><p>First 100 → $10 lifetime</p><span class="status inactive">● Expired</span></div>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Black Web Studio. All rights reserved.</p>
+</footer>
+
+<script>
+// ========== STATE ==========
+let currentProjectId = null;
+let isPremium = false;
+let creditBalance = 0;
+let chatHistory = [];
+
+// ========== AUTH ==========
+function showSignup() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+}
+function showLogin() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'none';
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('resendForm').style.display = 'none';
+}
+function showResend() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('resendForm').style.display = 'block';
+}
+function showForgot() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('forgotForm').style.display = 'block';
+}
+function closeAuth() { document.getElementById('authModal').classList.remove('active'); }
+
+async function handleSignup() {
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
+  const error = document.getElementById('signupError');
+  if (!email || !password) { error.textContent = 'Fill all fields'; return; }
+  try {
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error) { error.textContent = data.error; return; }
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('verifyForm').style.display = 'block';
+    document.getElementById('verifyError').textContent = '✅ Code sent! Check email.';
+  } catch (e) { error.textContent = 'Network error'; }
+}
+
+async function handleVerify() {
+  const email = document.getElementById('signupEmail').value;
+  const code = document.getElementById('verifyCode').value;
+  const error = document.getElementById('verifyError');
+  try {
+    const res = await fetch('/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+    const data = await res.json();
+    if (data.error) { error.textContent = data.error; return; }
+    document.getElementById('verifyForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('loginEmail').value = email;
+    error.textContent = '✅ Verified! Please login.';
+  } catch (e) { error.textContent = 'Network error'; }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const error = document.getElementById('authError');
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error) { error.textContent = data.error; return; }
+    document.getElementById('authModal').classList.remove('active');
+    document.getElementById('mainApp').style.display = 'flex';
+    document.getElementById('userBadge').textContent = email + ' 👑';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    loadProjects();
+  } catch (e) { error.textContent = 'Network error'; }
+}
+
+async function handleForgot() {
+  const email = document.getElementById('forgotEmail').value;
+  const error = document.getElementById('forgotError');
+  try {
+    const res = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.error) { error.textContent = data.error; return; }
+    error.textContent = '✅ New password sent!';
+  } catch (e) { error.textContent = 'Network error'; }
+}
+
+async function handleResend() {
+  const email = document.getElementById('resendEmail').value;
+  const error = document.getElementById('resendError');
+  try {
+    const res = await fetch('/api/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.error) { error.textContent = data.error; return; }
+    error.textContent = '✅ New code sent!';
+  } catch (e) { error.textContent = 'Network error'; }
+}
+
+async function handleLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('authModal').classList.add('active');
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('userBadge').textContent = 'Guest';
+}
+
+// ========== PAGE NAV ==========
+function showMain() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelector('.main-layout').style.display = 'grid';
+}
+function showPage(pageId) {
+  document.querySelector('.main-layout').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+}
+
+// ========== PROJECTS ==========
+async function loadProjects() {
+  try {
+    const res = await fetch('/api/projects');
+    const data = await res.json();
+    const list = document.getElementById('projectsList');
+    if (data.projects && data.projects.length > 0) {
+      list.innerHTML = data.projects.map(p => `
+        <div class="project-card">
+          <div class="info"><div class="name"><i class="fas fa-file-code"></i> ${p.name}</div>
+          <div class="date">${new Date(p.created_at).toLocaleDateString()}</div></div>
+          <button class="open-btn" onclick="alert('Open ${p.name}')"><i class="fas fa-external-link-alt"></i> Open</button>
+        </div>
+      `).join('');
+    } else {
+      list.innerHTML = '<p style="color:#888;">No projects yet. Generate one!</p>';
+    }
+  } catch (e) { console.error(e); }
+}
+
+// ========== GENERATE ==========
+async function generateCode() {
+  const msg = prompt('Describe what you want to build:');
+  if (!msg) return;
+  document.getElementById('chatInput').value = msg;
+  await sendMessage();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addMessage('user', msg);
+  input.value = '';
+  setStatus('⏳ Generating...');
+  try {
+    const type = document.getElementById('projectType').value;
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: msg, type })
+    });
+    const data = await res.json();
+    if (data.code) {
+      document.getElementById('codeEditor').value = data.code;
+      addMessage('agent', '✅ Code generated! Check the editor.');
+      setStatus('✅ Ready');
+    } else {
+      addMessage('agent', '❌ Error generating code.');
+      setStatus('❌ Error');
+    }
+  } catch (e) {
+    addMessage('agent', '❌ Network error.');
+    setStatus('❌ Error');
+  }
+}
+
+function addMessage(type, text) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-message ${type}`;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  chatHistory.push({ role: type, content: text });
+}
+
+function clearChat() {
+  document.getElementById('chatMessages').innerHTML = '';
+  chatHistory = [];
+  addMessage('system', '🧹 Chat cleared.');
+}
+
+function setStatus(text) {
+  document.getElementById('statusBar').textContent = text;
+}
+
+function openPreview() {
+  const code = document.getElementById('codeEditor').value;
+  const win = window.open('', '_blank');
+  win.document.write(code + `<div style="position:fixed;bottom:20px;right:20px;"><button onclick="window.close()" style="padding:8px 16px;background:#4cc9f0;color:#0a0a0a;border:none;border-radius:6px;cursor:pointer;">← Back</button></div>`);
+  win.document.close();
+}
+
+async function publishProject() {
+  if (!currentProjectId) { alert('Create a project first!'); return; }
+  setStatus('⏳ Publishing...');
+  try {
+    await fetch(`/api/projects/${currentProjectId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: document.getElementById('codeEditor').value })
+    });
+    const res = await fetch(`/api/publish/${currentProjectId}`, { method: 'POST' });
+    const data = await res.json();
+    addMessage('agent', `✅ Published! URL: ${data.url}`);
+    setStatus('✅ Published!');
+  } catch (e) { setStatus('❌ Publish failed'); }
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    addMessage('system', `📎 Uploaded: ${file.name}`);
+    document.getElementById('chatInput').value = `Make a website like: ${file.name}`;
+  }
+}
+
+function saveSetting(type) {
+  if (type === 'username') alert('Username updated: ' + document.getElementById('settingsUsername').value);
+  else if (type === 'email') alert('Email updated: ' + document.getElementById('settingsEmail').value);
+  else if (type === 'language') alert('Language updated: ' + document.getElementById('settingsLanguage').value);
+  else if (type === 'theme') alert('Theme updated: ' + document.getElementById('settingsTheme').value);
+}
+
+function processTopup(amount) {
+  creditBalance += amount;
+  document.getElementById('creditBalanceDisplay').textContent = `$${creditBalance}`;
+  document.getElementById('settingsCredit').textContent = `$${creditBalance}`;
+  alert(`$${amount} added! New balance: $${creditBalance}`);
+}
+
+// ========== SESSION CHECK ==========
+fetch('/api/session').then(res => res.json()).then(data => {
+  if (data.loggedIn) {
+    document.getElementById('authModal').classList.remove('active');
+    document.getElementById('mainApp').style.display = 'flex';
+    document.getElementById('userBadge').textContent = data.user.email + ' 👑';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    loadProjects();
+  }
+}).catch(() => {});
+</script>
 </body>
 </html>

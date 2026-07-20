@@ -16,7 +16,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ========== DATABASE ==========
 const DB_PATH = path.join(__dirname, 'db.json');
 fs.ensureFileSync(DB_PATH);
 
@@ -33,8 +32,8 @@ function writeDB(data) {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'fahadniazi09@gmail.com',
-    pass: process.env.EMAIL_PASS || 'yior bzzm lwhj oecr'
+    user: 'fahadniazi09@gmail.com',
+    pass: 'yior bzzm lwhj oecr'
   }
 });
 
