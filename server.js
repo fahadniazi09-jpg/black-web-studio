@@ -1,3 +1,4 @@
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs-extra');
@@ -270,6 +271,6 @@ app.get('/', (req, res) => {
 });
 
 // ========== SERVER START ==========
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(process.env.PORT || 3000, '0.0.0.0', () => {  console.log(`✅ Black Web Studio running on port ${process.env.PORT || 3000}`);});
   console.log(`✅ Black Web Studio running on http://localhost:${PORT}`);
 });
