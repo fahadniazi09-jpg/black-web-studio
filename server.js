@@ -102,7 +102,6 @@ app.get('/api/session', (req, res) => {
   res.json({ loggedIn: true, user: { email: session.email } });
 });
 
-// ========== RESEND + FORGOT PASSWORD ==========
 app.post('/api/resend-verification', async (req, res) => {
   const { email } = req.body;
   const db = readDB();
@@ -146,7 +145,6 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
-// ========== PROJECTS ==========
 app.get('/api/projects', (req, res) => {
   const db = readDB();
   const session = db.sessions[db.sessions.length - 1];
@@ -194,7 +192,6 @@ app.post('/api/publish/:id', (req, res) => {
   res.json({ url: `http://localhost:${PORT}/published/${req.params.id}/index.html` });
 });
 
-// ========== AI GENERATE ==========
 app.post('/api/generate', async (req, res) => {
   const { prompt, type } = req.body;
   const db = readDB();
@@ -224,7 +221,6 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// ========== TOPUP ==========
 app.post('/api/topup', (req, res) => {
   const { amount } = req.body;
   const db = readDB();
@@ -246,7 +242,6 @@ app.get('/api/balance', (req, res) => {
 
 app.use('/published', express.static(path.join(__dirname, 'public', 'published')));
 
-// ========== CONTACT FORM ==========
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
   try {
@@ -262,12 +257,10 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// ========== MAIN ROUTE ==========
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ========== SERVER START ==========
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Black Web Studio running on port ${PORT}`);
 });
