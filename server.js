@@ -12,7 +12,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// ========== CORS SETUP ==========
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -103,7 +109,7 @@ app.get('/api/session', (req, res) => {
   res.json({ loggedIn: true, user: { email: session.email } });
 });
 
-// ========== AI AGENT (PROFESSIONAL RESEARCH + CODE) ==========
+// ========== AI AGENT ==========
 app.post('/api/agent', async (req, res) => {
   const { prompt, type } = req.body;
   const db = readDB();
@@ -118,22 +124,11 @@ app.post('/api/agent', async (req, res) => {
   };
 
   try {
-    // Step 1: Research the prompt
-    const researchPrompt = `Research and analyze the following project requirement in detail:
-"${prompt}"
-Provide:
-1. Project type and category
-2. Key features needed
-3. Recommended tech stack
-4. Design requirements (colors, layout, responsiveness)
-5. APIs needed (if any, list free options)
-6. Target audience
-7. Estimated complexity
-
-Format the response as a structured JSON object.`;
+    // Research
+    const researchPrompt = `Research and analyze the following project: "${prompt}". Provide: project type, key features, tech stack, design requirements, APIs needed (free options). Format as JSON.`;
 
     const researchResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
       {
         contents: [{ parts: [{ text: researchPrompt }] }]
       }
@@ -141,51 +136,27 @@ Format the response as a structured JSON object.`;
     
     let researchText = researchResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     try {
-      const researchJson = JSON.parse(researchText.replace(/```json/g, '').replace(/```/g, ''));
-      agentResponse.research = researchJson;
+      agentResponse.research = JSON.parse(researchText.replace(/```json/g, '').replace(/```/g, ''));
     } catch {
       agentResponse.research = { summary: researchText };
     }
 
-    // Step 2: Generate requirements checklist
-    const requirementsPrompt = `Based on the project: "${prompt}", list all the requirements needed to build it. Include:
-1. Frontend requirements (HTML/CSS/JS)
-2. Backend requirements (if any)
-3. Database requirements (if any)
-4. API requirements (list free APIs)
-5. Authentication requirements
-6. Hosting requirements
-7. Special features needed
-
-Format as a bullet list.`;
-
+    // Requirements
+    const reqPrompt = `List all requirements for building: "${prompt}". Include frontend, backend, database, APIs, authentication, hosting.`;
     const reqResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
       {
-        contents: [{ parts: [{ text: requirementsPrompt }] }]
+        contents: [{ parts: [{ text: reqPrompt }] }]
       }
     );
     
     agentResponse.requirements = reqResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || 'Requirements not available';
 
-    // Step 3: Generate the code
-    const codePrompt = `Generate complete, production-ready HTML/CSS/JS code for the following project:
-"${prompt}"
-
-Requirements: ${agentResponse.requirements}
-
-Include:
-- Full HTML structure
-- Professional CSS styling (dark theme recommended)
-- Interactive JavaScript functionality
-- Responsive design (mobile + desktop)
-- No external dependencies (except Font Awesome for icons)
-- Use placeholder images from picsum.photos
-
-Only output the raw HTML code. Do not include markdown or explanations.`;
+    // Code
+    const codePrompt = `Generate complete, production-ready HTML/CSS/JS code for: "${prompt}". Include: full HTML, professional CSS, interactive JS, responsive design, dark theme, Font Awesome icons. Only output raw HTML code.`;
 
     const codeResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
       {
         contents: [{ parts: [{ text: codePrompt }] }]
       }
@@ -196,7 +167,7 @@ Only output the raw HTML code. Do not include markdown or explanations.`;
     agentResponse.code = code;
     agentResponse.preview = code;
 
-    // Save to database
+    // Save to DB
     db.agents = db.agents || [];
     db.agents.push({
       id: Date.now().toString(),
@@ -214,7 +185,6 @@ Only output the raw HTML code. Do not include markdown or explanations.`;
 
   } catch (err) {
     console.error('Agent error:', err.message);
-    // Fallback template
     const fallbackCode = `<!DOCTYPE html>
 <html>
 <head>
@@ -247,7 +217,6 @@ Only output the raw HTML code. Do not include markdown or explanations.`;
   }
 });
 
-// ========== PROJECTS ==========
 app.get('/api/projects', (req, res) => {
   const db = readDB();
   const session = db.sessions[db.sessions.length - 1];
