@@ -5,9 +5,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -141,7 +138,7 @@ app.post('/api/forgot-password', async (req, res) => {
   }
 });
 
-// ========== AI AGENT ==========
+// ========== COHERE API AGENT ==========
 app.post('/api/agent', async (req, res) => {
   const { prompt, type } = req.body;
   console.log('Agent called with prompt:', prompt);
@@ -153,27 +150,41 @@ app.post('/api/agent', async (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
-  const GEMINI_API_KEY = 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0';
+  // ⚠️ Cohere API Key
+  const COHERE_API_KEY = 'VEOG9lPFqxFcDyH5b4oOHt20iUiisyCM';
 
   try {
-    // Generate code
     const codePrompt = `Generate complete, production-ready HTML/CSS/JS code for: "${prompt}". Include: full HTML, professional CSS, interactive JS, responsive design, dark theme, Font Awesome icons. Only output raw HTML code.`;
 
-    console.log('Calling Gemini API...');
+    console.log('Calling Cohere API...');
     const codeResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      'https://api.cohere.com/v1/chat',
       {
-        contents: [{ parts: [{ text: codePrompt }] }]
+        model: 'command-r-plus',
+        messages: [
+          { role: 'system', content: 'You are a code generator. Generate complete HTML/CSS/JS code only.' },
+          { role: 'user', content: codePrompt }
+        ],
+        max_tokens: 2048,
+        temperature: 0.7
       },
-      { timeout: 30000 }
+      {
+        headers: {
+          'Authorization': `Bearer ${COHERE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
     );
     
-    let code = codeResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '// AI response not available';
+    let code = codeResponse.data.choices?.[0]?.message?.content || 
+                codeResponse.data.text || 
+                '// AI response not available';
     code = code.replace(/```html/g, '').replace(/```/g, '').trim();
     console.log('Code generated, length:', code.length);
 
     const agentResponse = {
-      research: { summary: 'Project researched successfully' },
+      research: { summary: 'Project researched via Cohere' },
       requirements: 'Full website with HTML/CSS/JS',
       code: code,
       preview: code
