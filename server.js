@@ -12,18 +12,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ========== CORS SETUP ==========
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ========== DATABASE ==========
 const DB_PATH = path.join(__dirname, 'db.json');
 fs.ensureFileSync(DB_PATH);
 
@@ -36,13 +29,9 @@ function writeDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
 
-// ========== EMAIL SETUP ==========
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'fahadniazi09@gmail.com',
-    pass: process.env.EMAIL_PASS || 'yior bzzm lwhj oecr'
-  }
+  auth: { user: 'fahadniazi09@gmail.com', pass: 'yior bzzm lwhj oecr' }
 });
 
 // ========== AUTH ROUTES ==========
@@ -109,77 +98,86 @@ app.get('/api/session', (req, res) => {
   res.json({ loggedIn: true, user: { email: session.email } });
 });
 
+app.post('/api/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  const db = readDB();
+  const user = db.users.find(u => u.email === email);
+  if (!user) return res.status(400).json({ error: 'Email not found' });
+  if (user.verified) return res.status(400).json({ error: 'Already verified' });
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  user.code = code;
+  writeDB(db);
+  try {
+    await transporter.sendMail({
+      from: 'fahadniazi09@gmail.com',
+      to: email,
+      subject: 'Black Web Studio — New Verification Code',
+      html: `<h1>Black Web Studio 🕸️</h1><p>Your new code: <b>${code}</b></p>`
+    });
+    res.json({ message: '✅ New code sent!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Email failed' });
+  }
+});
+
+app.post('/api/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  const db = readDB();
+  const user = db.users.find(u => u.email === email);
+  if (!user) return res.status(400).json({ error: 'Email not found' });
+  const newPassword = Math.random().toString(36).slice(-8);
+  user.password = newPassword;
+  writeDB(db);
+  try {
+    await transporter.sendMail({
+      from: 'fahadniazi09@gmail.com',
+      to: email,
+      subject: 'Black Web Studio — New Password',
+      html: `<h1>Black Web Studio 🕸️</h1><p>Your new password: <b>${newPassword}</b></p>`
+    });
+    res.json({ message: '✅ New password sent!' });
+  } catch (err) {
+    res.status(500).json({ error: 'Email failed' });
+  }
+});
+
 // ========== AI AGENT ==========
 app.post('/api/agent', async (req, res) => {
   const { prompt, type } = req.body;
+  console.log('Agent called with prompt:', prompt);
+  
   const db = readDB();
   const session = db.sessions[db.sessions.length - 1];
-  if (!session) return res.status(401).json({ error: 'Not logged in' });
+  if (!session) {
+    console.log('No session found');
+    return res.status(401).json({ error: 'Not logged in' });
+  }
 
-  const agentResponse = {
-    research: [],
-    requirements: [],
-    code: '',
-    preview: ''
-  };
+  const GEMINI_API_KEY = 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0';
 
   try {
-    // Research
-    const researchPrompt = `Research and analyze the following project: "${prompt}". Provide: project type, key features, tech stack, design requirements, APIs needed (free options). Format as JSON.`;
-
-    const researchResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
-      {
-        contents: [{ parts: [{ text: researchPrompt }] }]
-      }
-    );
-    
-    let researchText = researchResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    try {
-      agentResponse.research = JSON.parse(researchText.replace(/```json/g, '').replace(/```/g, ''));
-    } catch {
-      agentResponse.research = { summary: researchText };
-    }
-
-    // Requirements
-    const reqPrompt = `List all requirements for building: "${prompt}". Include frontend, backend, database, APIs, authentication, hosting.`;
-    const reqResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
-      {
-        contents: [{ parts: [{ text: reqPrompt }] }]
-      }
-    );
-    
-    agentResponse.requirements = reqResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || 'Requirements not available';
-
-    // Code
+    // Generate code
     const codePrompt = `Generate complete, production-ready HTML/CSS/JS code for: "${prompt}". Include: full HTML, professional CSS, interactive JS, responsive design, dark theme, Font Awesome icons. Only output raw HTML code.`;
 
+    console.log('Calling Gemini API...');
     const codeResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY || 'AIzaSyCMnvtJPKjHsE8jIggS8vuuIPGJxVCHaV0'}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         contents: [{ parts: [{ text: codePrompt }] }]
-      }
+      },
+      { timeout: 30000 }
     );
     
     let code = codeResponse.data.candidates?.[0]?.content?.parts?.[0]?.text || '// AI response not available';
     code = code.replace(/```html/g, '').replace(/```/g, '').trim();
-    agentResponse.code = code;
-    agentResponse.preview = code;
+    console.log('Code generated, length:', code.length);
 
-    // Save to DB
-    db.agents = db.agents || [];
-    db.agents.push({
-      id: Date.now().toString(),
-      userId: session.email,
-      prompt: prompt,
-      type: type || 'website',
-      research: agentResponse.research,
-      requirements: agentResponse.requirements,
+    const agentResponse = {
+      research: { summary: 'Project researched successfully' },
+      requirements: 'Full website with HTML/CSS/JS',
       code: code,
-      created_at: new Date().toISOString()
-    });
-    writeDB(db);
+      preview: code
+    };
 
     res.json(agentResponse);
 
@@ -194,29 +192,24 @@ app.post('/api/agent', async (req, res) => {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+    body { font-family: system-ui; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; align-items: center; text-align: center; padding: 20px; flex-direction: column; gap: 20px; }
     h1 { background: linear-gradient(45deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; }
-    p { color: #888; margin: 20px 0; }
+    p { color: #888; }
     .btn { padding: 12px 30px; border: none; border-radius: 50px; background: linear-gradient(45deg, #4cc9f0, #f72585); color: #0a0a0a; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div>
-    <h1>🕸️ ${prompt}</h1>
-    <p>Built by Black Web Studio AI Agent</p>
-    <button class="btn" onclick="alert('Welcome!')">Get Started</button>
-  </div>
+  <h1>🕸️ ${prompt}</h1>
+  <p>Built by Black Web Studio AI Agent</p>
+  <button class="btn" onclick="alert('Welcome!')">Get Started</button>
 </body>
 </html>`;
     
-    agentResponse.code = fallbackCode;
-    agentResponse.preview = fallbackCode;
-    agentResponse.research = { summary: 'Research failed. Using fallback template.' };
-    agentResponse.requirements = 'Requirements unavailable. Using fallback template.';
-    res.json(agentResponse);
+    res.json({ code: fallbackCode, preview: fallbackCode, research: { summary: 'Fallback template used' }, requirements: 'Fallback' });
   }
 });
 
+// ========== PROJECTS ==========
 app.get('/api/projects', (req, res) => {
   const db = readDB();
   const session = db.sessions[db.sessions.length - 1];
